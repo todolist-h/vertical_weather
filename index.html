@@ -1,1 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>熱中症警戒サイネージ(縦型) - 大分上野丘高校</title>
+    <!-- Tailwind CSSの読み込み -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 視認性の高いGoogle Fonts (Noto Sans JP) の読み込み -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Noto Sans JP', sans-serif; 
+            /* サイネージ用途のためスクロールバーを非表示 */
+            overflow: hidden; 
+            width: 250px;
+            height: 850px;
+        }
+        /* ゲージピンのスムーズなアニメーション移動 */
+        #gauge-pin {
+            transition: bottom 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+    </style>
+</head>
+<body class="w-[250px] h-[850px] flex flex-col transition-colors duration-1000 bg-gray-200 select-none" id="main-bg">
+    
+    <!-- シンプル＆高コントラストなダークヘッダー（250px幅用スリム設計） -->
+    <header class="p-3 bg-slate-950 border-b-2 border-slate-800 text-white shadow-lg text-center z-20">
+        <h1 class="text-2xl font-black tracking-wider text-white">
+            熱中症予防情報
+        </h1>
+        <div class="mt-1 flex flex-col items-center gap-0.5">
+            <span class="border border-slate-700 bg-slate-900 text-slate-300 font-bold text-[10px] px-2 py-0.5 rounded tracking-wider">
+                大分市上野丘
+            </span>
+            <p class="text-[11px] font-bold text-slate-400">
+                大分上野丘高校 周辺
+            </p>
+        </div>
+    </header>
 
+    <!-- メインコンテンツ（縦方向にパーツを整然と配置、拡大化） -->
+    <main class="flex-grow flex flex-col justify-between items-center p-3.5 text-center">
+        
+        <!-- 「〇〇:〇〇 現在」スリム版タイムスタンプ -->
+        <div class="w-full bg-yellow-400 text-slate-900 py-1.5 rounded-xl shadow-md border border-white flex items-center justify-center gap-2">
+            <span class="text-[10px] font-black tracking-wider bg-slate-900 text-yellow-400 px-1.5 py-0.5 rounded">LIVE</span>
+            <span id="current-time-status" class="text-xl font-black tracking-wider font-mono">--:-- 現在</span>
+        </div>
+
+        <!-- 警戒アラート発表ミニバッジ（WBGT31以上で自動点滅） -->
+        <div id="alert-badge" class="hidden w-full bg-red-600 text-white text-xs font-black py-1.5 rounded-lg animate-pulse border border-white shadow-md">
+            ⚠️ 警戒アラート基準到達
+        </div>
+
+        <!-- メイン看板：現在のレベルと数値を特大化 -->
+        <div id="alert-level-box" class="w-full rounded-2xl p-4 shadow-xl bg-white text-gray-800 border-[6px] border-transparent transition-all duration-700 flex flex-col justify-center items-center gap-1">
+            <p class="text-xs font-bold opacity-60">現在の警戒レベル</p>
+            <!-- 警戒レベルテキストを限界まで巨大化 -->
+            <h2 id="alert-level-text" class="text-4xl font-black tracking-wider leading-none my-1">取得中...</h2>
+            
+            <!-- WBGT巨大表示エリアをさらに拡大 -->
+            <div class="w-full mt-2 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl py-3 border-2 border-orange-500 flex flex-col items-center shadow-inner">
+                <span class="text-[11px] font-black text-orange-600 tracking-wider">暑さ指数 (WBGT)</span>
+                <div class="flex items-baseline gap-0.5 mt-1">
+                    <span id="wbgt-value" class="text-5xl font-black text-slate-900 tracking-tighter leading-none">--.-</span>
+                    <span class="text-xl font-black text-slate-600">℃</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 縦型「熱中症警戒サーモメーター（ゲージ）」の高さを拡大 -->
+        <div class="w-full bg-white rounded-2xl p-3 shadow-md flex items-center justify-between gap-2 h-[290px] relative">
+            
+            <!-- 左側：温度計の目盛りとレベルラベル -->
+            <div class="flex flex-col justify-between h-full text-[10px] font-black text-left w-[115px] select-none leading-none">
+                <span class="text-red-600 flex items-center gap-1">■ 危険 (31℃〜)</span>
+                <span class="text-orange-500 flex items-center gap-1">■ 厳重警戒 (28℃)</span>
+                <span class="text-yellow-500 flex items-center gap-1">■ 警戒 (25℃)</span>
+                <span class="text-cyan-500 flex items-center gap-1">■ 注意 (21℃)</span>
+                <span class="text-green-500 flex items-center gap-1">■ ほぼ安全</span>
+            </div>
+
+            <!-- 右側：垂直サーモメーター本体 (15℃〜35℃レンジ) -->
+            <div class="relative w-8 h-full bg-gray-100 rounded-full border border-gray-200 overflow-visible flex flex-col justify-between">
+                
+                <!-- 垂直積層カラーバー（背景） -->
+                <div class="absolute inset-0 rounded-full overflow-hidden flex flex-col-reverse">
+                    <!-- ほぼ安全 (15〜21℃: 30%) -->
+                    <div class="h-[30%] bg-green-500"></div>
+                    <!-- 注意 (21〜25℃: 20%) -->
+                    <div class="h-[20%] bg-cyan-400"></div>
+                    <!-- 警戒 (25〜28℃: 15%) -->
+                    <div class="h-[15%] bg-yellow-400"></div>
+                    <!-- 厳重警戒 (28〜31℃: 15%) -->
+                    <div class="h-[15%] bg-orange-500"></div>
+                    <!-- 危険 (31〜35℃: 20%) -->
+                    <div class="h-[20%] bg-red-600"></div>
+                </div>
+
+                <!-- 現在地を示す可動ピン（横に飛び出す矢印とバッジ） -->
+                <div id="gauge-pin" class="absolute left-[-12px] bottom-[0%] flex items-center z-10">
+                    <!-- 右向きの矢印 -->
+                    <div class="w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-[12px] border-l-slate-900 drop-shadow"></div>
+                    <!-- 現在値バッジ（矢印の右側をマーク） -->
+                    <div class="w-3 h-3 rounded-full bg-slate-900 border border-white shadow-md"></div>
+                </div>
+
+                <!-- 温度計の上部と下部の絶対基準値テキスト -->
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-gray-400">35℃</div>
+                <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-gray-400">15℃</div>
+            </div>
+        </div>
+
+        <!-- 警戒レベルに応じた注意文アドバイス（フォントサイズを拡大して視認性アップ） -->
+        <div class="w-full bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-md border border-black/5 min-h-[72px] flex items-center justify-center">
+            <p id="alert-message" class="text-sm font-black text-gray-800 leading-snug">
+                気象情報読み込み中...
+            </p>
+        </div>
+    </main>
+
+    <!-- 常に読みやすいダークフッター -->
+    <footer class="p-2 bg-slate-950 border-t border-slate-800 text-white text-center z-20">
+        <div id="date-display" class="text-xs font-black text-slate-300">----年--月--日(-)</div>
+        <div class="text-[8px] text-slate-500 mt-0.5">環境省計算式準拠（大分市上野丘）</div>
+    </footer>
+
+    <script>
+        // 大分県立大分上野丘高等学校の座標
+        const LATITUDE = 33.2269;
+        const LONGITUDE = 131.6119;
+        const FETCH_INTERVAL_MS = 10 * 60 * 1000; // 10分ごとに気象データを更新
+
+        // DOM要素
+        const elDate = document.getElementById('date-display');
+        const elTimeStatus = document.getElementById('current-time-status');
+        const elMainBg = document.getElementById('main-bg');
+        const elAlertBox = document.getElementById('alert-level-box');
+        const elAlertText = document.getElementById('alert-level-text');
+        const elAlertMsg = document.getElementById('alert-message');
+        const elWbgt = document.getElementById('wbgt-value');
+        const elGaugePin = document.getElementById('gauge-pin');
+        const elAlertBadge = document.getElementById('alert-badge');
+
+        /**
+         * 日付と現在スタンプ時刻の更新
+         */
+        function updateDateAndTimestamp() {
+            const now = new Date();
+            const daysJa = ['日', '月', '火', '水', '木', '金', '土'];
+            
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const day = daysJa[now.getDay()];
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            // 日付表示を更新
+            elDate.textContent = `${year}年${month}月${date}日(${day})`;
+            
+            // 〇〇:〇〇現在のタイムスタンプ表示を秒なしで更新
+            elTimeStatus.textContent = `${hours}:${minutes} 現在`;
+        }
+
+        /**
+         * 環境省の実況推定式（小野ら, 2014）を用いた高精度WBGT計算
+         */
+        function calculateAccurateWBGT(Ta, RH, SR, WS) {
+            const srKw = SR / 1000.0;
+            const wbgt = (0.735 * Ta) + 
+                         (0.0374 * RH) + 
+                         (0.00292 * Ta * RH) + 
+                         (7.619 * srKw) - 
+                         (4.557 * Math.pow(srKw, 2)) - 
+                         (0.0572 * WS) - 
+                         4.064;
+            
+            return Math.max(15, Math.min(35, wbgt)); // 表示メーター幅の都合上、15℃〜35℃にクリップ
+        }
+
+        /**
+         * WBGT値からメーターピンの底からの％位置を計算する
+         * 範囲：15℃ (0%) 〜 35℃ (100%)
+         */
+        function calculatePinPercentage(wbgt) {
+            const minWbgt = 15.0;
+            const maxWbgt = 35.0;
+            let percentage = ((wbgt - minWbgt) / (maxWbgt - minWbgt)) * 100;
+            
+            // 安全限界ガード
+            return Math.max(0, Math.min(100, percentage));
+        }
+
+        /**
+         * WBGT値に基づきUIを更新する
+         */
+        function updateAlertUI(wbgt) {
+            let levelText = "";
+            let msgText = "";
+            let bgColorClass = "";
+            let boxColorClass = "";
+            let msgColorClass = "";
+
+            // アラートバッジの表示制御（31℃以上で警戒アラート発表状態）
+            if (wbgt >= 31.0) {
+                elAlertBadge.classList.remove('hidden');
+            } else {
+                elAlertBadge.classList.add('hidden');
+            }
+
+            if (wbgt >= 31.0) {
+                levelText = "危険";
+                msgText = "運動は原則中止！速やかに涼しい室内へ避難してください。";
+                bgColorClass = "bg-red-700";
+                boxColorClass = "border-red-500 text-red-600";
+                msgColorClass = "text-red-700";
+            } else if (wbgt >= 28.0) {
+                levelText = "厳重警戒";
+                msgText = "すべての運動で十分な休息とこまめな水分・塩分補給を！";
+                bgColorClass = "bg-orange-500";
+                boxColorClass = "border-orange-400 text-orange-600";
+                msgColorClass = "text-orange-700";
+            } else if (wbgt >= 25.0) {
+                levelText = "警戒";
+                msgText = "運動時は定期的に休息を取り、積極的に水分を補給。";
+                bgColorClass = "bg-yellow-400";
+                boxColorClass = "border-yellow-400 text-yellow-600";
+                msgColorClass = "text-yellow-700";
+            } else if (wbgt >= 21.0) {
+                levelText = "注意";
+                msgText = "熱中症の兆候に注意し、適度な水分・塩分の補給を。";
+                bgColorClass = "bg-cyan-400";
+                boxColorClass = "border-cyan-400 text-cyan-600";
+                msgColorClass = "text-cyan-700";
+            } else {
+                levelText = "ほぼ安全";
+                msgText = "適度な水分補給を行い、通常通りの活動でOKです。";
+                bgColorClass = "bg-green-500";
+                boxColorClass = "border-green-400 text-green-600";
+                msgColorClass = "text-green-700";
+            }
+
+            // テキスト・配色の流し込み
+            elAlertText.textContent = levelText;
+            elAlertMsg.textContent = msgText;
+            elMainBg.className = "w-[250px] h-[850px] flex flex-col transition-colors duration-1000 select-none " + bgColorClass;
+            elAlertBox.className = `w-full rounded-2xl p-4 shadow-xl bg-white border-[6px] transition-all duration-700 flex flex-col justify-center items-center gap-1 ${boxColorClass}`;
+
+            // ゲージの針位置（底からの高さパーセンテージ）をアップデート
+            const percentage = calculatePinPercentage(wbgt);
+            // 矢印の高さ位置の微調整 (-8px分はピンの中心を指すため)
+            elGaugePin.style.bottom = `calc(${percentage}% - 8px)`;
+        }
+
+        /**
+         * Open-Meteo APIから気象データを取得
+         */
+        async function fetchWeatherData() {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,shortwave_radiation,wind_speed_10m&wind_speed_unit=ms&timezone=Asia%2FTokyo`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                
+                const temp = data.current.temperature_2m;
+                const humid = data.current.relative_humidity_2m;
+                const solar = data.current.shortwave_radiation; 
+                const wind = data.current.wind_speed_10m;       
+                
+                // WBGTを計算 (小野らの式)
+                const wbgt = calculateAccurateWBGT(temp, humid, solar, wind);
+                
+                // メインWBGTの文字表示
+                elWbgt.textContent = wbgt.toFixed(1);
+                
+                // UIとゲージの同期
+                updateAlertUI(wbgt);
+
+                // 情報更新に合わせて現在の時刻表示を更新
+                updateDateAndTimestamp();
+            } catch (error) {
+                console.error("Failed to fetch weather data:", error);
+                elAlertText.textContent = "エラー";
+                elAlertMsg.textContent = "再接続を試みています...";
+            }
+        }
+
+        function init() {
+            // 初期データ読み込み
+            updateDateAndTimestamp();
+            fetchWeatherData();
+            
+            // 1分ごとに時計とタイムスタンプを安全に更新
+            setInterval(updateDateAndTimestamp, 60000);
+            
+            // 気象データの自動更新（10分ごと）
+            setInterval(fetchWeatherData, FETCH_INTERVAL_MS);
+        }
+
+        init();
+    </script>
+</body>
+</html>

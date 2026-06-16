@@ -24,7 +24,7 @@
 </head>
 <body class="w-[250px] h-[850px] flex flex-col transition-colors duration-1000 bg-gray-200 select-none" id="main-bg">
     
-    <!-- シンプル＆高コントラストなダークヘッダー（250px幅用スリム設計） -->
+    <!-- シンプル＆高コントラストなダークヘッダー（ネイビー固定で美しく引き締め） -->
     <header class="p-3 bg-slate-950 border-b-2 border-slate-800 text-white shadow-lg text-center z-20">
         <h1 class="text-2xl font-black tracking-wider text-white">
             熱中症予防情報
@@ -40,7 +40,7 @@
     </header>
 
     <!-- メインコンテンツ（縦方向にパーツを整然と配置、拡大化） -->
-    <main class="flex-grow flex flex-col justify-between items-center p-3.5 text-center">
+    <main class="flex-grow flex flex-col justify-between items-center p-3 text-center">
         
         <!-- 「〇〇:〇〇 現在」スリム版タイムスタンプ -->
         <div class="w-full bg-yellow-400 text-slate-900 py-1.5 rounded-xl shadow-md border border-white flex items-center justify-center gap-2">
@@ -54,23 +54,23 @@
         </div>
 
         <!-- メイン看板：現在のレベルと数値を特大化 -->
-        <div id="alert-level-box" class="w-full rounded-2xl p-4 shadow-xl bg-white text-gray-800 border-[6px] border-transparent transition-all duration-700 flex flex-col justify-center items-center gap-1">
-            <p class="text-xs font-bold opacity-60">現在の警戒レベル</p>
+        <div id="alert-level-box" class="w-full rounded-2xl p-3 shadow-xl bg-white text-gray-800 border-[6px] border-transparent transition-all duration-700 flex flex-col justify-center items-center gap-1">
+            <p class="text-[11px] font-bold opacity-60">現在の警戒レベル</p>
             <!-- 警戒レベルテキストを限界まで巨大化 -->
             <h2 id="alert-level-text" class="text-4xl font-black tracking-wider leading-none my-1">取得中...</h2>
             
-            <!-- WBGT巨大表示エリアをさらに拡大 -->
-            <div class="w-full mt-2 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl py-3 border-2 border-orange-500 flex flex-col items-center shadow-inner">
-                <span class="text-[11px] font-black text-orange-600 tracking-wider">暑さ指数 (WBGT)</span>
-                <div class="flex items-baseline gap-0.5 mt-1">
-                    <span id="wbgt-value" class="text-5xl font-black text-slate-900 tracking-tighter leading-none">--.-</span>
-                    <span class="text-xl font-black text-slate-600">℃</span>
+            <!-- WBGT巨大表示エリア：数値を劇的に拡大 -->
+            <div class="w-full mt-1 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl py-3 border-2 border-orange-500 flex flex-col items-center shadow-inner">
+                <span class="text-xs font-black text-orange-600 tracking-wider">暑さ指数 (WBGT)</span>
+                <div class="flex items-baseline gap-1 mt-1 justify-center">
+                    <span id="wbgt-value" class="text-7xl font-black text-slate-900 tracking-tighter leading-none">--.-</span>
+                    <span class="text-3xl font-black text-slate-600">℃</span>
                 </div>
             </div>
         </div>
 
-        <!-- 縦型「熱中症警戒サーモメーター（ゲージ）」の高さを拡大 -->
-        <div class="w-full bg-white rounded-2xl p-3 shadow-md flex items-center justify-between gap-2 h-[290px] relative">
+        <!-- 縦型「熱中症警戒サーモメーター（ゲージ）」高さを拡大＆バグを完全に修正 -->
+        <div class="w-full bg-white rounded-2xl p-3 shadow-md flex items-center justify-between gap-2 h-[280px] relative">
             
             <!-- 左側：温度計の目盛りとレベルラベル -->
             <div class="flex flex-col justify-between h-full text-[10px] font-black text-left w-[115px] select-none leading-none">
@@ -84,18 +84,18 @@
             <!-- 右側：垂直サーモメーター本体 (15℃〜35℃レンジ) -->
             <div class="relative w-8 h-full bg-gray-100 rounded-full border border-gray-200 overflow-visible flex flex-col justify-between">
                 
-                <!-- 垂直積層カラーバー（背景） -->
+                <!-- 垂直積層カラーバー（背景：インラインstyleで確実に色を描画） -->
                 <div class="absolute inset-0 rounded-full overflow-hidden flex flex-col-reverse">
                     <!-- ほぼ安全 (15〜21℃: 30%) -->
-                    <div class="h-[30%] bg-green-500"></div>
+                    <div class="bg-green-500 w-full" style="height: 30%;"></div>
                     <!-- 注意 (21〜25℃: 20%) -->
-                    <div class="h-[20%] bg-cyan-400"></div>
+                    <div class="bg-cyan-400 w-full" style="height: 20%;"></div>
                     <!-- 警戒 (25〜28℃: 15%) -->
-                    <div class="h-[15%] bg-yellow-400"></div>
+                    <div class="bg-yellow-400 w-full" style="height: 15%;"></div>
                     <!-- 厳重警戒 (28〜31℃: 15%) -->
-                    <div class="h-[15%] bg-orange-500"></div>
+                    <div class="bg-orange-500 w-full" style="height: 15%;"></div>
                     <!-- 危険 (31〜35℃: 20%) -->
-                    <div class="h-[20%] bg-red-600"></div>
+                    <div class="bg-red-600 w-full" style="height: 20%;"></div>
                 </div>
 
                 <!-- 現在地を示す可動ピン（横に飛び出す矢印とバッジ） -->
@@ -247,7 +247,7 @@
             elAlertText.textContent = levelText;
             elAlertMsg.textContent = msgText;
             elMainBg.className = "w-[250px] h-[850px] flex flex-col transition-colors duration-1000 select-none " + bgColorClass;
-            elAlertBox.className = `w-full rounded-2xl p-4 shadow-xl bg-white border-[6px] transition-all duration-700 flex flex-col justify-center items-center gap-1 ${boxColorClass}`;
+            elAlertBox.className = `w-full rounded-2xl p-3 shadow-xl bg-white border-[6px] transition-all duration-700 flex flex-col justify-center items-center gap-1 ${boxColorClass}`;
 
             // ゲージの針位置（底からの高さパーセンテージ）をアップデート
             const percentage = calculatePinPercentage(wbgt);
